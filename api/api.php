@@ -64,7 +64,9 @@ try {
     $context = stream_context_create($options);
     $result = @file_get_contents($apiUrl, false, $context);
     
+    // Parse response
     $leadId = uniqid();
+    $debugInfo = '';
     if ($result) {
         $response = json_decode($result, true);
         if (isset($response['lead_id'])) {
@@ -72,14 +74,19 @@ try {
         } elseif (isset($response['id'])) {
             $leadId = $response['id'];
         }
+        $debugInfo = $result; // Send raw JSON response for debugging
+    } else {
+        $error = error_get_last();
+        $debugInfo = 'Error connecting to MonadLead API: ' . ($error['message'] ?? 'Unknown Error');
     }
 
-    header('Location: ../success.html?id=' . urlencode($leadId));
+    // Redirect to success page, appending the API debug response
+    header('Location: ../success.html?id=' . urlencode($leadId) . '&api_res=' . urlencode($debugInfo));
     exit;
 
 } catch (Throwable $e) {
     // If anything fails, redirect to success.html anyway so we don't break the user flow
-    header('Location: ../success.html?id=' . urlencode(uniqid()) . '&err=1');
+    header('Location: ../success.html?id=' . urlencode(uniqid()) . '&err=1&api_res=' . urlencode($e->getMessage()));
     exit;
 }
 ?>
