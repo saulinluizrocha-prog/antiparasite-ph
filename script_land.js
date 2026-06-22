@@ -25,12 +25,12 @@
     var promoEl = document.getElementsByClassName("al-cost-promo");
 
     for(var i = 0; i < promoEl.length; i++){
-        promoEl[i].innerText = "3980 PHP";
+        promoEl[i].innerText = "3900 PHP";
     }
 
     var priceEl = document.getElementsByClassName("al-cost");
 
     for(var i = 0; i < priceEl.length; i++){
-        priceEl[i].innerText = "1990 PHP";
+        priceEl[i].innerText = "1950 PHP";
     }
 })(); 
