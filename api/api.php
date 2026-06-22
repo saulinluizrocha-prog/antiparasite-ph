@@ -47,26 +47,58 @@ try {
         "utm_content"  => $_GET['utm_content'] ?? ''
     ];
 
-    // Target API endpoint (Standard endpoint for MonadLead API)
-    $apiUrl = 'https://api.monadlead.com/v1/lead/create';
-
-    // Send the request via stream context (does not require cURL extension, working in 100% of PHP configurations)
-    $options = [
-        'http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/json\r\n" .
-                         "Accept: application/json\r\n",
-            'content' => json_encode($payload),
-            'ignore_errors' => true,
-            'timeout' => 15
-        ]
+    // List of candidate endpoints for MonadLead API (auto-discovery)
+    $endpoints = [
+        'https://api.monadlead.com/api/lead/create',
+        'https://api.monadlead.com/api/v1/lead/create',
+        'https://api.monadlead.com/lead/create',
+        'https://monadlead.com/api/lead/create',
+        'https://monadlead.com/api/v1/lead/create',
+        'https://api.monadlead.com/v1/lead/create' // Our original fallback
     ];
-    $context = stream_context_create($options);
-    $result = @file_get_contents($apiUrl, false, $context);
-    
+
+    $result = null;
+    $successUrlUsed = '';
+    $httpCodeUsed = 0;
+
+    foreach ($endpoints as $url) {
+        $options = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n" .
+                             "Accept: application/json\r\n",
+                'content' => json_encode($payload),
+                'ignore_errors' => true,
+                'timeout' => 8
+            ]
+        ];
+        $context = stream_context_create($options);
+        $res = @file_get_contents($url, false, $context);
+
+        // Parse the HTTP response code
+        $httpCode = 0;
+        if (isset($http_response_header) && is_array($http_response_header)) {
+            foreach ($http_response_header as $header) {
+                if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/i', $header, $matches)) {
+                    $httpCode = intval($matches[1]);
+                    break;
+                }
+            }
+        }
+
+        // If HTTP code is NOT 404 (and not 0 connection error), we found the valid endpoint!
+        if ($httpCode !== 404 && $httpCode !== 0) {
+            $result = $res;
+            $successUrlUsed = $url;
+            $httpCodeUsed = $httpCode;
+            break;
+        }
+    }
+
     // Parse response
     $leadId = uniqid();
     $debugInfo = '';
+    
     if ($result) {
         $response = json_decode($result, true);
         if (isset($response['lead_id'])) {
@@ -74,10 +106,10 @@ try {
         } elseif (isset($response['id'])) {
             $leadId = $response['id'];
         }
-        $debugInfo = $result; // Send raw JSON response for debugging
+        $debugInfo = 'Endpoint: ' . $successUrlUsed . ' | HTTP: ' . $httpCodeUsed . ' | Response: ' . $result;
     } else {
         $error = error_get_last();
-        $debugInfo = 'Error connecting to MonadLead API: ' . ($error['message'] ?? 'Unknown Error');
+        $debugInfo = 'Failed to connect to any API endpoints. Last error: ' . ($error['message'] ?? 'Unknown Error');
     }
 
     // Redirect to success page, appending the API debug response
