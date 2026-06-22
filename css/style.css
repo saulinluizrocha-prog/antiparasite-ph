@@ -511,9 +511,9 @@ section {
 }
 
 .prod_wrap img {
-    max-width: 145%;
+    max-width: 100%;
     margin-bottom: -30px;
-    margin-left: -90px;
+    margin-left: -35px;
 }
 
 .section_two {
@@ -1001,7 +1001,8 @@ section {
     right: 590px;
     bottom: -15px;
     z-index: 9;
-    background-size: 140px;
+    background-size: contain;
+    background-position: center bottom;
 }
 
 .footer_three .green_block {
@@ -1292,7 +1293,8 @@ section {
     bottom: 20px;
     right: 155px;
     z-index: 0;
-    background-size: 210px;
+    background-size: contain;
+    background-position: right bottom;
 }
 
 .green_block-info-text:after {
@@ -2344,8 +2346,8 @@ section {
 .body_eight .product {
     position: relative;
     top: 40px;
-    left: -40px;
-    width: 245px;
+    left: -10px;
+    width: 180px;
 }
 
 .section_eight_wrap_box div p:first-child {
@@ -2710,16 +2712,17 @@ section {
 }
 
 .body_nine_left_block .product {
-    width: 310px;
+    width: 210px;
     position: relative;
     top: 180px;
-    left: 0px;
+    left: 45px;
 }
 
 .image-web .body_nine_left_block .product {
-    width: 325px;
+    width: 220px;
     position: relative;
     top: 100px;
+    left: 40px;
 }
 
 .section_nine_title {
@@ -3176,9 +3179,9 @@ section {
 }
 
 .form_block_img img {
-    width: 270px;
-    margin-right: -100px;
-    margin-bottom: -78px;
+    width: 195px;
+    margin-right: -25px;
+    margin-bottom: -10px;
 }
 
 .sale_bottom span:first-child {
