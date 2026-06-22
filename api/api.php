@@ -64,41 +64,26 @@ try {
     $context = stream_context_create($options);
     $result = @file_get_contents($apiUrl, false, $context);
 
-    // Parse the HTTP response code
-    $httpCode = 0;
-    if (isset($http_response_header) && is_array($http_response_header)) {
-        foreach ($http_response_header as $header) {
-            if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/i', $header, $matches)) {
-                $httpCode = intval($matches[1]);
-                break;
-            }
-        }
-    }
-
     // Parse response
     $leadId = uniqid();
-    $debugInfo = '';
-    
     if ($result) {
         $response = json_decode($result, true);
-        if (isset($response['lead_id'])) {
+        if (isset($response['order_id'])) {
+            $leadId = $response['order_id'];
+        } elseif (isset($response['lead_id'])) {
             $leadId = $response['lead_id'];
         } elseif (isset($response['id'])) {
             $leadId = $response['id'];
         }
-        $debugInfo = 'HTTP: ' . $httpCode . ' | Response: ' . $result;
-    } else {
-        $error = error_get_last();
-        $debugInfo = 'Failed to connect to API. Error: ' . ($error['message'] ?? 'Unknown Error');
     }
 
-    // Redirect to success page, appending the API response
-    header('Location: ../success.html?id=' . urlencode($leadId) . '&api_res=' . urlencode($debugInfo));
+    // Redirect to success page with the real lead ID
+    header('Location: ../success.html?id=' . urlencode($leadId));
     exit;
 
 } catch (Throwable $e) {
     // If anything fails, redirect to success.html anyway so we don't break the user flow
-    header('Location: ../success.html?id=' . urlencode(uniqid()) . '&err=1&api_res=' . urlencode($e->getMessage()));
+    header('Location: ../success.html?id=' . urlencode(uniqid()));
     exit;
 }
 ?>
