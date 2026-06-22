@@ -49,12 +49,18 @@ try {
 
     // List of candidate endpoints for MonadLead API (auto-discovery)
     $endpoints = [
+        'https://api.monadlead.com/v1/lead',
+        'https://api.monadlead.com/lead',
+        'https://api.monadlead.com/api/v1/lead',
+        'https://api.monadlead.com/api/lead',
         'https://api.monadlead.com/api/lead/create',
         'https://api.monadlead.com/api/v1/lead/create',
         'https://api.monadlead.com/lead/create',
+        'https://api.monadlead.com/v1/lead/create',
         'https://monadlead.com/api/lead/create',
         'https://monadlead.com/api/v1/lead/create',
-        'https://api.monadlead.com/v1/lead/create' // Our original fallback
+        'https://monadlead.com/api/v1/lead',
+        'https://monadlead.com/api/lead'
     ];
 
     $result = null;
@@ -69,7 +75,7 @@ try {
                              "Accept: application/json\r\n",
                 'content' => json_encode($payload),
                 'ignore_errors' => true,
-                'timeout' => 8
+                'timeout' => 5
             ]
         ];
         $context = stream_context_create($options);
@@ -86,8 +92,9 @@ try {
             }
         }
 
-        // If HTTP code is NOT 404 (and not 0 connection error), we found the valid endpoint!
-        if ($httpCode !== 404 && $httpCode !== 0) {
+        // Only accept REST API status codes (200, 201, 400, 401, 403, 422)
+        // This avoids matching 404 pages or 302 redirects to 404 pages.
+        if (in_array($httpCode, [200, 201, 400, 401, 403, 422])) {
             $result = $res;
             $successUrlUsed = $url;
             $httpCodeUsed = $httpCode;
