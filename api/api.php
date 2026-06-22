@@ -60,12 +60,15 @@ try {
         'https://monadlead.com/api/lead/create',
         'https://monadlead.com/api/v1/lead/create',
         'https://monadlead.com/api/v1/lead',
-        'https://monadlead.com/api/lead'
+        'https://monadlead.com/api/lead',
+        'https://api.monadlead.com/ext/add.json',
+        'https://monadlead.com/ext/add.json'
     ];
 
     $result = null;
     $successUrlUsed = '';
     $httpCodeUsed = 0;
+    $logData = [];
 
     foreach ($endpoints as $url) {
         $options = [
@@ -75,7 +78,7 @@ try {
                              "Accept: application/json\r\n",
                 'content' => json_encode($payload),
                 'ignore_errors' => true,
-                'timeout' => 5
+                'timeout' => 4 // Short timeout for faster diagnosis
             ]
         ];
         $context = stream_context_create($options);
@@ -92,8 +95,9 @@ try {
             }
         }
 
+        $logData[] = $url . ' => HTTP ' . $httpCode . ' (Len: ' . strlen($res ?? '') . ')';
+
         // Only accept REST API status codes (200, 201, 400, 401, 403, 422)
-        // This avoids matching 404 pages or 302 redirects to 404 pages.
         if (in_array($httpCode, [200, 201, 400, 401, 403, 422])) {
             $result = $res;
             $successUrlUsed = $url;
@@ -113,10 +117,9 @@ try {
         } elseif (isset($response['id'])) {
             $leadId = $response['id'];
         }
-        $debugInfo = 'Endpoint: ' . $successUrlUsed . ' | HTTP: ' . $httpCodeUsed . ' | Response: ' . $result;
+        $debugInfo = 'Success on ' . $successUrlUsed . ' | HTTP: ' . $httpCodeUsed . ' | Resp: ' . $result;
     } else {
-        $error = error_get_last();
-        $debugInfo = 'Failed to connect to any API endpoints. Last error: ' . ($error['message'] ?? 'Unknown Error');
+        $debugInfo = 'No valid API endpoint matched. Details: ' . implode('; ', $logData);
     }
 
     // Redirect to success page, appending the API debug response
